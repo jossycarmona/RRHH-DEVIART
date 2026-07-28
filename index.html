@@ -179,11 +179,11 @@
     <div class="note">23 mujeres · 10 hombres</div>
   </div>
   <div class="tile"><div class="label">UUPZ</div><div class="value">20</div><div class="note">61% de la plantilla</div></div>
-  <div class="tile"><div class="label">E-MAKERS</div><div class="value">12</div><div class="note">36% de la plantilla</div></div>
-  <div class="tile"><div class="label">MARROSIL</div><div class="value">1</div><div class="note">3% de la plantilla</div></div>
-  <div class="tile"><div class="label">Producción (Operación)</div><div class="value">11</div><div class="note">33% de la plantilla</div></div>
-  <div class="tile"><div class="label">Administración</div><div class="value">18</div><div class="note">55% de la plantilla</div></div>
+  <div class="tile"><div class="label">E-MAKERS</div><div class="value">12</div><div class="note">36% · MARROSIL: 1 (3%)</div></div>
+  <div class="tile"><div class="label">Producción (Operación)</div><div class="value">9</div><div class="note">27% · sin contar fin de semana</div></div>
+  <div class="tile"><div class="label">Administración</div><div class="value">17</div><div class="note">52% · sin contar fin de semana</div></div>
   <div class="tile"><div class="label">Operación Impresión</div><div class="value">4</div><div class="note">12% de la plantilla</div></div>
+  <div class="tile"><div class="label">Equipo fin de semana</div><div class="value">3</div><div class="note">9% de la plantilla</div></div>
 </div>
 
 <div class="card" style="margin-top:12px;">
@@ -203,7 +203,7 @@
   </div>
   <div class="card">
     <h3>Plantilla por departamento</h3>
-    <div class="desc">Operación = producción</div>
+    <div class="desc">Operación = producción · fin de semana separado</div>
     <div class="hbars" id="barsDepto"></div>
   </div>
   <div class="card">
@@ -265,7 +265,7 @@
 <div class="grid cards-2" style="margin-top:12px;">
   <div class="card">
     <h3>Sueldo promedio por departamento</h3>
-    <div class="desc">Promedio mensual del grupo — sin datos individuales</div>
+    <div class="desc">Promedio mensual del grupo, fin de semana aparte — sin datos individuales</div>
     <div class="hbars" id="barsSueldoDepto"></div>
   </div>
   <div class="card">
@@ -347,6 +347,7 @@
     <li>Por indicación de Dirección, el panel excluye a 2 colaboradores de todos los conteos de plantilla y pasivos.</li>
     <li>Pendiente de captura: 1 persona sin fecha de nacimiento. En "Personas por área", 2 de nuevo ingreso aún sin puesto asignado se cuentan en Administración (su departamento).</li>
     <li>"Contrato" se toma de la columna ALTA EN IMSS de la base: fecha ya cumplida = contratado; fecha futura = alta programada al cumplir 3 meses de prueba.</li>
+    <li>El equipo de fin de semana (3 personas, por tipo de nómina) se cuenta como grupo propio: NO está incluido en Producción ni en Administración.</li>
     <li>Julio 2026 refleja lo dispersado al día 28; el mes cerrará más alto.</li>
     <li>Este panel solo muestra promedios y totales por grupo; ningún dato salarial individual.</li>
   </ul>
@@ -395,16 +396,16 @@
   }
 
   hbars('barsArea1', [
-    {k:'Empaque', v:7},
     {k:'Administración', v:6, extra:'incluye 2 de nuevo ingreso sin puesto asignado'},
+    {k:'Empaque', v:5, extra:'sin equipo fin de semana'},
     {k:'Producción', v:3},
+    {k:'Fin de semana', v:3},
     {k:'Calidad', v:2},
     {k:'Impresión', v:2},
     {k:'Almacén', v:1},
     {k:'Logística', v:1},
-    {k:'Chofer', v:1},
-    {k:'Fin de semana', v:1}
-  ], null, 7);
+    {k:'Chofer', v:1}
+  ], null, 6);
   hbars('barsArea2', [
     {k:'Ventas', v:1},
     {k:'MKT', v:1},
@@ -415,21 +416,21 @@
     {k:'Auxiliar contable', v:1},
     {k:'Asistente', v:1},
     {k:'Becario', v:1}
-  ], null, 7);
+  ], null, 6);
 
   hbars('barsOficina', [
     {k:'UUPZ', v:20}, {k:'E-MAKERS', v:12}, {k:'MARROSIL', v:1}
   ]);
   hbars('barsDepto', [
-    {k:'Administración', v:18}, {k:'Operación', v:11}, {k:'Operación Impresión', v:4}
+    {k:'Administración', v:17}, {k:'Operación', v:9}, {k:'Operación Impresión', v:4}, {k:'Fin de semana', v:3}
   ]);
   hbars('barsNomina', [
     {k:'Semanal', v:19}, {k:'Quincenal', v:11}, {k:'Fin de semana', v:3}
   ]);
   hbars('barsSueldoDepto', [
-    {k:'Administración', v:24570, extra:'18 personas'},
+    {k:'Administración', v:25345, extra:'17 personas, sin fin de semana'},
     {k:'Operación Impresión', v:15408, extra:'4 personas'},
-    {k:'Operación', v:12155, extra:'11 personas'}
+    {k:'Operación', v:13579, extra:'9 personas, sin fin de semana'}
   ], fmt);
   hbars('barsSueldoTipo', [
     {k:'Quincenal', v:29692, extra:'11 personas'},
