@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RRHH — Panel de Dirección | DEVIART</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page:           #f9f9f7;
+    --surface-1:      #fcfcfb;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --grid:           #e1e0d9;
+    --baseline:       #c3c2b7;
+    --border:         rgba(11,11,11,0.10);
+    --series-1:       #2a78d6;  /* azul */
+    --series-2:       #eb6834;  /* naranja */
+    --series-prev:    #898781;  /* año anterior, contexto */
+    --wash-1:         rgba(42,120,214,0.10);
+    --good:           #006300;
+    --critical:       #d03b3b;
+    --track:          #eceae4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --page:           #0d0d0d;
+      --surface-1:      #1a1a19;
+      --text-primary:   #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #898781;
+      --grid:           #2c2c2a;
+      --baseline:       #383835;
+      --border:         rgba(255,255,255,0.10);
+      --series-1:       #3987e5;
+      --series-2:       #d95926;
+      --series-prev:    #898781;
+      --wash-1:         rgba(57,135,229,0.12);
+      --good:           #0ca30c;
+      --critical:       #d03b3b;
+      --track:          #262624;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page:           #0d0d0d;
+    --surface-1:      #1a1a19;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #898781;
+    --grid:           #2c2c2a;
+    --baseline:       #383835;
+    --border:         rgba(255,255,255,0.10);
+    --series-1:       #3987e5;
+    --series-2:       #d95926;
+    --series-prev:    #898781;
+    --wash-1:         rgba(57,135,229,0.12);
+    --good:           #0ca30c;
+    --critical:       #d03b3b;
+    --track:          #262624;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--page);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 14px;
+    line-height: 1.45;
+    padding: 24px 20px 48px;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; }
+
+  header { margin-bottom: 24px; }
+  header h1 { font-size: 22px; font-weight: 650; letter-spacing: -0.01em; }
+  header .sub { color: var(--text-secondary); margin-top: 2px; font-size: 13px; }
+
+  h2.section {
+    font-size: 12px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text-muted);
+    margin: 30px 0 12px;
+  }
+
+  .grid { display: grid; gap: 12px; }
+  .tiles { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 860px) { .tiles { grid-template-columns: repeat(2, 1fr); } }
+  .cards-2 { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 760px) { .cards-2 { grid-template-columns: 1fr; } }
+  .cards-3 { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+
+  .card, .tile {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .tile .label { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+  .tile .value { font-size: 26px; font-weight: 600; letter-spacing: -0.01em; }
+  .tile .value.hero { font-size: 48px; line-height: 1.05; }
+  .tile .note { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  .tile .delta { font-size: 12px; font-weight: 600; margin-top: 4px; }
+  .delta.up-bad { color: var(--critical); }
+  .delta.up-good { color: var(--good); }
+
+  .card h3 { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+  .card .desc { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; }
+
+  /* ---- barras horizontales ---- */
+  .hbars { display: grid; grid-template-columns: max-content 1fr max-content; gap: 8px 10px; align-items: center; }
+  .hbars .lbl { font-size: 13px; color: var(--text-secondary); white-space: nowrap; }
+  .hbars .trk { height: 18px; position: relative; }
+  .hbars .bar {
+    position: absolute; left: 0; top: 0; bottom: 0;
+    background: var(--series-1);
+    border-radius: 0 4px 4px 0;
+    min-width: 2px;
+  }
+  .hbars .val { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+
+  /* ---- columnas (distribuciones) ---- */
+  .cols { display: flex; align-items: flex-end; gap: 10px; height: 140px; border-bottom: 1px solid var(--baseline); }
+  .cols .col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; }
+  .cols .cap { font-size: 12px; font-weight: 600; margin-bottom: 3px; }
+  .cols .bar { width: 100%; max-width: 42px; background: var(--series-1); border-radius: 4px 4px 0 0; min-height: 2px; }
+  .cols-x { display: flex; gap: 10px; margin-top: 6px; }
+  .cols-x span { flex: 1; text-align: center; font-size: 11px; color: var(--text-muted); }
+
+  /* ---- barra de proporción (género) ---- */
+  .split { display: flex; height: 26px; border-radius: 6px; overflow: hidden; gap: 2px; background: var(--surface-1); }
+  .split div { min-width: 4px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 10px; font-size: 12px; color: var(--text-secondary); }
+  .legend .key { display: inline-flex; align-items: center; gap: 6px; }
+  .legend .sw { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+
+  /* ---- SVG charts ---- */
+  .chartbox { position: relative; }
+  svg text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .tick { font-size: 11px; fill: var(--text-muted); }
+  .endlbl { font-size: 12px; font-weight: 600; fill: var(--text-primary); }
+
+  /* ---- tooltip ---- */
+  #tip {
+    position: fixed; z-index: 50; pointer-events: none;
+    background: var(--surface-1); color: var(--text-primary);
+    border: 1px solid var(--border); border-radius: 8px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+    padding: 8px 10px; font-size: 12px; display: none; max-width: 240px;
+  }
+  #tip .t-title { font-weight: 600; margin-bottom: 2px; }
+  #tip .t-row { display: flex; align-items: center; gap: 6px; color: var(--text-secondary); }
+  #tip .sw { width: 8px; height: 8px; border-radius: 2px; display: inline-block; flex: none; }
+
+  .footnotes { margin-top: 34px; font-size: 12px; color: var(--text-muted); border-top: 1px solid var(--grid); padding-top: 14px; }
+  .footnotes li { margin-left: 18px; margin-bottom: 3px; }
+
+  table.datatable { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+  table.datatable th, table.datatable td { padding: 4px 8px; text-align: right; border-bottom: 1px solid var(--grid); font-variant-numeric: tabular-nums; }
+  table.datatable th:first-child, table.datatable td:first-child { text-align: left; }
+  table.datatable th { color: var(--text-muted); font-weight: 600; }
+  details.tbl summary { font-size: 12px; color: var(--text-muted); cursor: pointer; margin-top: 10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>RRHH — Panel de Dirección</h1>
+  <div class="sub">DEVIART S.A. de C.V. · Corte: 28 de julio de 2026 · Datos agregados, sin sueldos individuales</div>
+</header>
+
+<!-- ============ PLANTILLA ============ -->
+<h2 class="section">Plantilla activa</h2>
+<div class="grid tiles">
+  <div class="tile" style="grid-row: span 2;">
+    <div class="label">Personas activas</div>
+    <div class="value hero">33</div>
+    <div class="note">23 mujeres · 10 hombres</div>
+  </div>
+  <div class="tile"><div class="label">UUPZ</div><div class="value">20</div><div class="note">61% de la plantilla</div></div>
+  <div class="tile"><div class="label">E-MAKERS</div><div class="value">12</div><div class="note">36% de la plantilla</div></div>
+  <div class="tile"><div class="label">MARROSIL</div><div class="value">1</div><div class="note">3% de la plantilla</div></div>
+  <div class="tile"><div class="label">Producción (Operación)</div><div class="value">11</div><div class="note">33% de la plantilla</div></div>
+  <div class="tile"><div class="label">Administración</div><div class="value">18</div><div class="note">55% de la plantilla</div></div>
+  <div class="tile"><div class="label">Operación Impresión</div><div class="value">4</div><div class="note">12% de la plantilla</div></div>
+</div>
+
+<div class="card" style="margin-top:12px;">
+  <h3>Personas por área</h3>
+  <div class="desc">Puesto registrado en la asistencia de julio · 33 personas</div>
+  <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:8px 36px;">
+    <div class="hbars" id="barsArea1"></div>
+    <div class="hbars" id="barsArea2"></div>
+  </div>
+</div>
+
+<div class="grid cards-3" style="margin-top:12px;">
+  <div class="card">
+    <h3>Plantilla por oficina</h3>
+    <div class="desc">Según base de datos de RRHH</div>
+    <div class="hbars" id="barsOficina"></div>
+  </div>
+  <div class="card">
+    <h3>Plantilla por departamento</h3>
+    <div class="desc">Operación = producción</div>
+    <div class="hbars" id="barsDepto"></div>
+  </div>
+  <div class="card">
+    <h3>Plantilla por tipo de nómina</h3>
+    <div class="desc">Esquema de pago vigente</div>
+    <div class="hbars" id="barsNomina"></div>
+  </div>
+</div>
+
+<!-- ============ CONTRATOS ============ -->
+<h2 class="section">Contratos · alta en IMSS</h2>
+<div class="grid tiles">
+  <div class="tile"><div class="label">Con contrato (alta IMSS vigente)</div><div class="value">27</div><div class="note">82% de la plantilla</div></div>
+  <div class="tile"><div class="label">Aún sin contrato</div><div class="value">6</div><div class="note">En periodo de prueba de 3 meses</div></div>
+  <div class="tile" style="grid-column: span 2;">
+    <div class="label">Próximas altas programadas</div>
+    <div style="font-size:12.5px; color:var(--text-secondary); margin-top:6px; display:grid; grid-template-columns:1fr 1fr; gap:3px 16px;">
+      <span>22 ago — Betania Vargas</span>
+      <span>11 sep — Alejandro Villaseñor</span>
+      <span>01 sep — Manuel Ayala</span>
+      <span>20 oct — Karla Vaca</span>
+      <span>05 sep — Ivonne Fonseca</span>
+      <span>Por definir — Bertha Echegollen (ingresó 04 jun)</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ PERFIL ============ -->
+<h2 class="section">Perfil del equipo</h2>
+<div class="grid tiles">
+  <div class="tile"><div class="label">Edad promedio</div><div class="value">32.5 años</div><div class="note">Rango: 19 a 46 años</div></div>
+  <div class="tile"><div class="label">Antigüedad promedio</div><div class="value">2.0 años</div><div class="note">La persona más antigua: 8.4 años</div></div>
+  <div class="tile"><div class="label">Con menos de 1 año</div><div class="value">12</div><div class="note">36% de la plantilla</div></div>
+  <div class="tile"><div class="label">Con 3+ años</div><div class="value">8</div><div class="note">24% de la plantilla</div></div>
+</div>
+<div class="grid cards-2" style="margin-top:12px;">
+  <div class="card">
+    <h3>Distribución por edad</h3>
+    <div class="desc">Personas por rango de edad (1 sin dato)</div>
+    <div class="cols" id="colsEdad"></div>
+    <div class="cols-x" id="xEdad"></div>
+  </div>
+  <div class="card">
+    <h3>Distribución por antigüedad</h3>
+    <div class="desc">Años en la empresa</div>
+    <div class="cols" id="colsAntig"></div>
+    <div class="cols-x" id="xAntig"></div>
+  </div>
+</div>
+
+<!-- ============ COMPENSACIÓN ============ -->
+<h2 class="section">Compensación (solo agregados)</h2>
+<div class="grid tiles">
+  <div class="tile"><div class="label">Sueldo promedio mensual</div><div class="value">$19,321</div><div class="note">Mediana: $16,400 (33 personas)</div></div>
+  <div class="tile"><div class="label">Masa salarial mensual</div><div class="value">$637.6K</div><div class="note">Suma de ingresos mensuales</div></div>
+  <div class="tile"><div class="label">Prom. nómina quincenal</div><div class="value">$29,692</div><div class="note">11 personas</div></div>
+  <div class="tile"><div class="label">Prom. nómina semanal</div><div class="value">$15,163</div><div class="note">19 personas</div></div>
+</div>
+<div class="grid cards-2" style="margin-top:12px;">
+  <div class="card">
+    <h3>Sueldo promedio por departamento</h3>
+    <div class="desc">Promedio mensual del grupo — sin datos individuales</div>
+    <div class="hbars" id="barsSueldoDepto"></div>
+  </div>
+  <div class="card">
+    <h3>Sueldo promedio por tipo de nómina</h3>
+    <div class="desc">Promedio mensual del grupo — sin datos individuales</div>
+    <div class="hbars" id="barsSueldoTipo"></div>
+  </div>
+</div>
+
+<!-- ============ COSTO DE NÓMINA ============ -->
+<h2 class="section">Costo de nómina (pagos reales dispersados)</h2>
+<div class="grid tiles">
+  <div class="tile"><div class="label">Pagado 2026 (ene–jul)</div><div class="value">$6.41M</div><div class="delta up-bad">+4.8% vs mismo periodo 2025</div></div>
+  <div class="tile"><div class="label">Pagado 2025 (año completo)</div><div class="value">$11.01M</div><div class="note">REAL + IMSS</div></div>
+  <div class="tile"><div class="label">Promedio mensual 2026</div><div class="value">$915K</div><div class="note">Julio aún parcial</div></div>
+  <div class="tile"><div class="label">Nómina IMSS 2026</div><div class="value">31.7%</div><div class="note">del total pagado en el año</div></div>
+</div>
+<div class="grid cards-2" style="margin-top:12px;">
+  <div class="card">
+    <h3>Nómina mensual: 2026 vs 2025</h3>
+    <div class="desc">Total dispersado por mes · julio 2026 parcial (corte día 28)</div>
+    <div class="chartbox"><svg id="lineChart" viewBox="0 0 640 260" width="100%" preserveAspectRatio="xMidYMid meet"></svg></div>
+    <div class="legend">
+      <span class="key"><span class="sw" style="background:var(--series-1)"></span>2026</span>
+      <span class="key"><span class="sw" style="background:var(--series-prev)"></span>2025</span>
+    </div>
+    <details class="tbl"><summary>Ver tabla de datos</summary>
+      <table class="datatable" id="tblMensual"></table>
+    </details>
+  </div>
+  <div class="card">
+    <h3>Nómina anual: REAL vs IMSS</h3>
+    <div class="desc">2026 con corte a julio</div>
+    <div class="chartbox"><svg id="stackChart" viewBox="0 0 640 260" width="100%" preserveAspectRatio="xMidYMid meet"></svg></div>
+    <div class="legend">
+      <span class="key"><span class="sw" style="background:var(--series-1)"></span>REAL</span>
+      <span class="key"><span class="sw" style="background:var(--series-2)"></span>IMSS</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ROTACIÓN ============ -->
+<h2 class="section">Rotación</h2>
+<div class="grid tiles">
+  <div class="tile"><div class="label">Bajas 2026 (ene–jul)</div><div class="value">14</div><div class="note">2 por mes en promedio</div></div>
+  <div class="tile"><div class="label">Altas 2026 (ene–jul)</div><div class="value">11</div><div class="note">Saldo neto: −3 personas</div></div>
+  <div class="tile"><div class="label">Bajas 2025</div><div class="value">40</div><div class="note">vs 46 altas en el año</div></div>
+  <div class="tile"><div class="label">Permanencia al salir</div><div class="value">3 meses</div><div class="note">Mediana · promedio: 9 meses</div></div>
+</div>
+<div class="grid cards-2" style="margin-top:12px;">
+  <div class="card">
+    <h3>Bajas por año</h3>
+    <div class="desc">2026 con corte a julio</div>
+    <div class="cols" id="colsBajas"></div>
+    <div class="cols-x" id="xBajas"></div>
+  </div>
+  <div class="card">
+    <h3>Lectura rápida</h3>
+    <div class="desc">Lo que dicen los números</div>
+    <ul style="margin-left:18px; font-size:13px; color:var(--text-secondary); display:grid; gap:8px;">
+      <li>La mitad de quienes se van duran <strong style="color:var(--text-primary)">3 meses o menos</strong>: el punto crítico es la selección y el arranque, no la retención de largo plazo.</li>
+      <li>En 2025 rotó más de una plantilla completa (40 bajas sobre ~33 puestos). En 2026 el ritmo bajó a 2 bajas por mes.</li>
+      <li>El 36% de la plantilla actual tiene menos de un año — el conocimiento operativo está concentrado en 8 personas con 3+ años.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============ PASIVOS ============ -->
+<h2 class="section">Pasivos laborales 2026</h2>
+<div class="grid tiles">
+  <div class="tile"><div class="label">Prima vacacional provisionada</div><div class="value">$20,097</div><div class="note">15 personas con aniversario en el año</div></div>
+  <div class="tile"><div class="label">Días de vacaciones (derecho)</div><div class="value">234</div><div class="note">Total del equipo con corte 2026</div></div>
+</div>
+
+<div class="footnotes">
+  <strong>Fuentes y notas</strong>
+  <ul>
+    <li>Fuentes: BASE DE DATOS1.xlsx (activos, bajas), TOTAL NOMINA.xlsx (pagos 2022–2026), nóminas semanal/quincenal y PRIMA VACACIONAL 2026.xlsx.</li>
+    <li>Por indicación de Dirección, el panel excluye a 2 colaboradores de todos los conteos de plantilla y pasivos.</li>
+    <li>Pendiente de captura: 1 persona sin fecha de nacimiento. En "Personas por área", 2 de nuevo ingreso aún sin puesto asignado se cuentan en Administración (su departamento).</li>
+    <li>"Contrato" se toma de la columna ALTA EN IMSS de la base: fecha ya cumplida = contratado; fecha futura = alta programada al cumplir 3 meses de prueba.</li>
+    <li>Julio 2026 refleja lo dispersado al día 28; el mes cerrará más alto.</li>
+    <li>Este panel solo muestra promedios y totales por grupo; ningún dato salarial individual.</li>
+  </ul>
+</div>
+
+</div><!-- /wrap -->
+
+<div id="tip"></div>
+
+<script>
+(function(){
+  const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const fmt = n => '$' + Math.round(n).toLocaleString('en-US');
+  const fmtK = n => n >= 1e6 ? '$' + (n/1e6).toFixed(2) + 'M' : '$' + Math.round(n/1e3) + 'K';
+
+  /* ---------- tooltip compartido ---------- */
+  const tip = document.getElementById('tip');
+  function showTip(html, x, y){
+    tip.innerHTML = html; tip.style.display = 'block';
+    const pad = 14;
+    let left = x + pad, top = y + pad;
+    const r = tip.getBoundingClientRect();
+    if (left + r.width > window.innerWidth - 8) left = x - r.width - pad;
+    if (top + r.height > window.innerHeight - 8) top = y - r.height - pad;
+    tip.style.left = left + 'px'; tip.style.top = top + 'px';
+  }
+  function hideTip(){ tip.style.display = 'none'; }
+  document.addEventListener('mousemove', e => {
+    const el = e.target.closest('[data-tip]');
+    if (el) showTip(el.dataset.tip, e.clientX, e.clientY); else hideTip();
+  });
+  document.addEventListener('mouseleave', hideTip);
+
+  /* ---------- barras horizontales ---------- */
+  function hbars(id, data, valueFmt, globalMax){
+    const el = document.getElementById(id);
+    const max = globalMax || Math.max(...data.map(d => d.v));
+    el.innerHTML = data.map(d => {
+      const w = (d.v / max * 100).toFixed(1);
+      const shown = valueFmt ? valueFmt(d.v) : d.v;
+      const tipTxt = '<div class="t-title">' + d.k + '</div><div class="t-row">' + shown + (d.extra ? ' · ' + d.extra : '') + '</div>';
+      return '<div class="lbl">' + d.k + '</div>' +
+             '<div class="trk" data-tip=\'' + tipTxt + '\'><div class="bar" style="width:' + w + '%"></div></div>' +
+             '<div class="val">' + shown + '</div>';
+    }).join('');
+  }
+
+  hbars('barsArea1', [
+    {k:'Empaque', v:7},
+    {k:'Administración', v:6, extra:'incluye 2 de nuevo ingreso sin puesto asignado'},
+    {k:'Producción', v:3},
+    {k:'Calidad', v:2},
+    {k:'Impresión', v:2},
+    {k:'Almacén', v:1},
+    {k:'Logística', v:1},
+    {k:'Chofer', v:1},
+    {k:'Fin de semana', v:1}
+  ], null, 7);
+  hbars('barsArea2', [
+    {k:'Ventas', v:1},
+    {k:'MKT', v:1},
+    {k:'ATC', v:1},
+    {k:'Sistemas', v:1},
+    {k:'Plataformas', v:1},
+    {k:'Diseñador', v:1},
+    {k:'Auxiliar contable', v:1},
+    {k:'Asistente', v:1},
+    {k:'Becario', v:1}
+  ], null, 7);
+
+  hbars('barsOficina', [
+    {k:'UUPZ', v:20}, {k:'E-MAKERS', v:12}, {k:'MARROSIL', v:1}
+  ]);
+  hbars('barsDepto', [
+    {k:'Administración', v:18}, {k:'Operación', v:11}, {k:'Operación Impresión', v:4}
+  ]);
+  hbars('barsNomina', [
+    {k:'Semanal', v:19}, {k:'Quincenal', v:11}, {k:'Fin de semana', v:3}
+  ]);
+  hbars('barsSueldoDepto', [
+    {k:'Administración', v:24570, extra:'18 personas'},
+    {k:'Operación Impresión', v:15408, extra:'4 personas'},
+    {k:'Operación', v:12155, extra:'11 personas'}
+  ], fmt);
+  hbars('barsSueldoTipo', [
+    {k:'Quincenal', v:29692, extra:'11 personas'},
+    {k:'Semanal', v:15163, extra:'19 personas'},
+    {k:'Fin de semana', v:7630, extra:'3 personas'}
+  ], fmt);
+
+  /* ---------- columnas (distribuciones) ---------- */
+  function cols(idBars, idX, data){
+    const bars = document.getElementById(idBars), xr = document.getElementById(idX);
+    const max = Math.max(...data.map(d => d.v));
+    bars.innerHTML = data.map(d => {
+      const h = Math.max(2, d.v / max * 100);
+      const tipTxt = '<div class="t-title">' + d.k + '</div><div class="t-row">' + d.v + ' ' + (d.unit || 'personas') + '</div>';
+      return '<div class="col" data-tip=\'' + tipTxt + '\'><div class="cap">' + d.v + '</div><div class="bar" style="height:' + h + '%"></div></div>';
+    }).join('');
+    xr.innerHTML = data.map(d => '<span>' + d.k + '</span>').join('');
+  }
+
+  cols('colsEdad', 'xEdad', [
+    {k:'<25', v:7}, {k:'25–29', v:3}, {k:'30–34', v:11}, {k:'35–39', v:4}, {k:'40–44', v:5}, {k:'45+', v:2}
+  ]);
+  cols('colsAntig', 'xAntig', [
+    {k:'<1 año', v:12}, {k:'1–3', v:13}, {k:'3–5', v:4}, {k:'5–8', v:3}, {k:'8+', v:1}
+  ]);
+  cols('colsBajas', 'xBajas', [
+    {k:'2024', v:9, unit:'bajas'}, {k:'2025', v:40, unit:'bajas'}, {k:'2026*', v:14, unit:'bajas (a julio)'}
+  ]);
+
+  /* ---------- línea: nómina mensual 2026 vs 2025 ---------- */
+  (function(){
+    const svg = document.getElementById('lineChart');
+    const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    const y2025 = [741106,683893,822394,750163,1320684,841093,952597,952586,751580,943844,949210,1301589];
+    const y2026 = [1090715,801284,878928,767646,1342503,842193,682698];
+    const W=640, H=260, mL=52, mR=44, mT=14, mB=28;
+    const iw = W-mL-mR, ih = H-mT-mB;
+    const yMax = 1500000;
+    const x = i => mL + i/(meses.length-1)*iw;
+    const y = v => mT + ih - v/yMax*ih;
+    const ns = 'http://www.w3.org/2000/svg';
+    function add(tag, attrs, parent){
+      const e = document.createElementNS(ns, tag);
+      for (const k in attrs) e.setAttribute(k, attrs[k]);
+      (parent || svg).appendChild(e); return e;
+    }
+    // grid + ticks
+    [0, 500000, 1000000, 1500000].forEach(v => {
+      add('line', {x1:mL, x2:W-mR, y1:y(v), y2:y(v), stroke:'var(--grid)', 'stroke-width':1});
+      const t = add('text', {x:mL-8, y:y(v)+4, 'text-anchor':'end', class:'tick'});
+      t.textContent = v===0 ? '0' : (v/1e6).toFixed(1).replace('.0','') + 'M';
+    });
+    add('line', {x1:mL, x2:W-mR, y1:y(0), y2:y(0), stroke:'var(--baseline)', 'stroke-width':1});
+    meses.forEach((m,i) => {
+      const t = add('text', {x:x(i), y:H-8, 'text-anchor':'middle', class:'tick'});
+      t.textContent = m;
+    });
+    function path(data){ return data.map((v,i) => (i?'L':'M') + x(i).toFixed(1) + ' ' + y(v).toFixed(1)).join(' '); }
+    add('path', {d:path(y2025), fill:'none', stroke:'var(--series-prev)', 'stroke-width':2, 'stroke-linejoin':'round', 'stroke-linecap':'round'});
+    add('path', {d:path(y2026), fill:'none', stroke:'var(--series-1)', 'stroke-width':2, 'stroke-linejoin':'round', 'stroke-linecap':'round'});
+    // marcador final 2026 con anillo de superficie + etiqueta
+    const li = y2026.length-1;
+    add('circle', {cx:x(li), cy:y(y2026[li]), r:6, fill:'var(--series-1)', stroke:'var(--surface-1)', 'stroke-width':2});
+    const el2 = add('text', {x:x(li)+9, y:y(y2026[li])+4, class:'endlbl'});
+    el2.textContent = fmtK(y2026[li]);
+    // hover: crosshair + tooltip
+    const cross = add('line', {x1:0,x2:0,y1:mT,y2:mT+ih, stroke:'var(--baseline)', 'stroke-width':1, visibility:'hidden'});
+    const dotA = add('circle', {r:5, fill:'var(--series-1)', stroke:'var(--surface-1)', 'stroke-width':2, visibility:'hidden'});
+    const dotB = add('circle', {r:5, fill:'var(--series-prev)', stroke:'var(--surface-1)', 'stroke-width':2, visibility:'hidden'});
+    svg.addEventListener('mousemove', e => {
+      const r = svg.getBoundingClientRect();
+      const px = (e.clientX - r.left) * (W / r.width);
+      let i = Math.round((px - mL) / iw * (meses.length-1));
+      i = Math.max(0, Math.min(meses.length-1, i));
+      cross.setAttribute('x1', x(i)); cross.setAttribute('x2', x(i));
+      cross.setAttribute('visibility','visible');
+      let html = '<div class="t-title">' + meses[i] + '</div>';
+      if (i < y2026.length){
+        dotA.setAttribute('cx',x(i)); dotA.setAttribute('cy',y(y2026[i])); dotA.setAttribute('visibility','visible');
+        html += '<div class="t-row"><span class="sw" style="background:var(--series-1)"></span>2026: ' + fmt(y2026[i]) + (i===6?' (parcial)':'') + '</div>';
+      } else dotA.setAttribute('visibility','hidden');
+      dotB.setAttribute('cx',x(i)); dotB.setAttribute('cy',y(y2025[i])); dotB.setAttribute('visibility','visible');
+      html += '<div class="t-row"><span class="sw" style="background:var(--series-prev)"></span>2025: ' + fmt(y2025[i]) + '</div>';
+      showTip(html, e.clientX, e.clientY);
+    });
+    svg.addEventListener('mouseleave', () => {
+      cross.setAttribute('visibility','hidden');
+      dotA.setAttribute('visibility','hidden');
+      dotB.setAttribute('visibility','hidden');
+      hideTip();
+    });
+    // tabla accesible
+    const tbl = document.getElementById('tblMensual');
+    tbl.innerHTML = '<tr><th>Mes</th><th>2025</th><th>2026</th></tr>' +
+      meses.map((m,i) => '<tr><td>' + m + '</td><td>' + fmt(y2025[i]) + '</td><td>' +
+        (i < y2026.length ? fmt(y2026[i]) + (i===6?' *':'') : '—') + '</td></tr>').join('');
+  })();
+
+  /* ---------- columnas apiladas: REAL vs IMSS ---------- */
+  (function(){
+    const svg = document.getElementById('stackChart');
+    const data = [
+      {k:'2022', real:3929465, imss:1473655},
+      {k:'2023', real:6270698, imss:2235833},
+      {k:'2024', real:6999522, imss:2383325},
+      {k:'2025', real:8191503, imss:2819238},
+      {k:'2026*', real:4373262, imss:2032705}
+    ];
+    const W=640, H=260, mL=52, mR=16, mT=14, mB=28;
+    const iw = W-mL-mR, ih = H-mT-mB;
+    const yMax = 12000000;
+    const y = v => mT + ih - v/yMax*ih;
+    const ns = 'http://www.w3.org/2000/svg';
+    function add(tag, attrs){
+      const e = document.createElementNS(ns, tag);
+      for (const k in attrs) e.setAttribute(k, attrs[k]);
+      svg.appendChild(e); return e;
+    }
+    [0, 4000000, 8000000, 12000000].forEach(v => {
+      add('line', {x1:mL, x2:W-mR, y1:y(v), y2:y(v), stroke:'var(--grid)', 'stroke-width':1});
+      const t = add('text', {x:mL-8, y:y(v)+4, 'text-anchor':'end', class:'tick'});
+      t.textContent = v===0 ? '0' : (v/1e6) + 'M';
+    });
+    add('line', {x1:mL, x2:W-mR, y1:y(0), y2:y(0), stroke:'var(--baseline)', 'stroke-width':1});
+    const bw = 24, slot = iw/data.length;
+    data.forEach((d,i) => {
+      const cx = mL + slot*i + slot/2;
+      const total = d.real + d.imss;
+      const tipTxt = '<div class="t-title">' + d.k.replace('*',' (a julio)') + ' — ' + fmtK(total) + '</div>' +
+        '<div class="t-row"><span class="sw" style="background:var(--series-1)"></span>REAL: ' + fmt(d.real) + '</div>' +
+        '<div class="t-row"><span class="sw" style="background:var(--series-2)"></span>IMSS: ' + fmt(d.imss) + '</div>';
+      // segmento REAL (base, esquinas cuadradas en baseline)
+      const hReal = y(0) - y(d.real);
+      const rReal = add('rect', {x:cx-bw/2, y:y(d.real), width:bw, height:hReal, fill:'var(--series-1)'});
+      // segmento IMSS (encima, con gap de 2px y tope redondeado)
+      const hImss = y(0) - y(d.imss);
+      const rImss = add('rect', {x:cx-bw/2, y:y(d.real)-2-hImss, width:bw, height:hImss, fill:'var(--series-2)', rx:4});
+      [rReal, rImss].forEach(r => r.dataset.tip = tipTxt);
+      // total en el tope
+      const t = add('text', {x:cx, y:y(d.real)-2-hImss-6, 'text-anchor':'middle', class:'endlbl'});
+      t.textContent = fmtK(total);
+      const xl = add('text', {x:cx, y:H-8, 'text-anchor':'middle', class:'tick'});
+      xl.textContent = d.k;
+    });
+  })();
+})();
+</script>
+</body>
+</html>
